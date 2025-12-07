@@ -1,5 +1,6 @@
 """Utilities for SDR Agent"""
 import structlog
+import logging
 from datetime import datetime
 
 # Configure structured logging
@@ -10,7 +11,7 @@ structlog.configure(
         structlog.processors.StackInfoRenderer(),
         structlog.dev.ConsoleRenderer()
     ],
-    wrapper_class=structlog.make_filtering_bound_logger(logging_level=structlog.DEBUG),
+    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
     context_class=dict,
     logger_factory=structlog.PrintLoggerFactory(),
     cache_logger_on_first_use=True,
