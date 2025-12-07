@@ -1,5 +1,5 @@
 """Email Integration"""
-from typing import Optional
+from typing import Optional, List
 from ..config import config
 from ..core.models import OutreachMessage, CRMActivity
 from ..utils.logger import get_logger
@@ -93,7 +93,7 @@ class EmailIntegration:
             logger.error("Error sending email", error=str(e))
             return False
     
-    def send_bulk_emails(self, messages: list[OutreachMessage]) -> dict:
+    def send_bulk_emails(self, messages: List[OutreachMessage]) -> dict:
         """
         Send multiple emails
         

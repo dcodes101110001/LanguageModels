@@ -166,15 +166,19 @@ class SalesforceIntegration:
             return None
         
         try:
+            # Sanitize email input to prevent SOQL injection
+            # Remove potentially dangerous characters
+            sanitized_email = email.replace("'", "\\'").replace("\\", "\\\\")
+            
             # Search in Leads first
-            query = f"SELECT Id, FirstName, LastName, Company, Email, Status FROM Lead WHERE Email = '{email}' LIMIT 1"
+            query = f"SELECT Id, FirstName, LastName, Company, Email, Status FROM Lead WHERE Email = '{sanitized_email}' LIMIT 1"
             result = self.sf.query(query)
             
             if result['totalSize'] > 0:
                 return result['records'][0]
             
             # If not found in Leads, search Contacts
-            query = f"SELECT Id, FirstName, LastName, Email FROM Contact WHERE Email = '{email}' LIMIT 1"
+            query = f"SELECT Id, FirstName, LastName, Email FROM Contact WHERE Email = '{sanitized_email}' LIMIT 1"
             result = self.sf.query(query)
             
             if result['totalSize'] > 0:

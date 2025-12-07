@@ -1,6 +1,6 @@
 """Configuration management for SDR Agent"""
 import os
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
@@ -52,7 +52,7 @@ class Config(BaseModel):
     linkedin: LinkedInConfig = Field(default_factory=LinkedInConfig)
     agent: AgentConfig = Field(default_factory=AgentConfig)
     
-    def validate_required(self) -> list[str]:
+    def validate_required(self) -> List[str]:
         """Validate required configuration fields"""
         missing = []
         if not self.openai.api_key:
