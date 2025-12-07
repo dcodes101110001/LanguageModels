@@ -151,6 +151,33 @@ class SalesforceIntegration:
             logger.error("Error updating lead status", error=str(e))
             return False
     
+    def _sanitize_soql_string(self, value: str) -> str:
+        """
+        Sanitize a string value for use in SOQL queries to prevent injection
+        
+        Args:
+            value: String to sanitize
+            
+        Returns:
+            Sanitized string safe for SOQL
+        """
+        if not value:
+            return ""
+        
+        # Escape backslashes first (must be done before other escaping)
+        value = value.replace("\\", "\\\\")
+        
+        # Escape single quotes
+        value = value.replace("'", "\\'")
+        
+        # Remove or escape other potentially dangerous characters
+        # SOQL doesn't support many special chars that could be attack vectors
+        dangerous_chars = ["\n", "\r", "\t", "\b", "\f"]
+        for char in dangerous_chars:
+            value = value.replace(char, "")
+        
+        return value
+    
     def search_contact(self, email: str) -> Optional[Dict[str, Any]]:
         """
         Search for existing contact/lead by email
@@ -167,8 +194,12 @@ class SalesforceIntegration:
         
         try:
             # Sanitize email input to prevent SOQL injection
-            # Remove potentially dangerous characters
-            sanitized_email = email.replace("'", "\\'").replace("\\", "\\\\")
+            sanitized_email = self._sanitize_soql_string(email)
+            
+            # Validate email format as additional safety measure
+            if not sanitized_email or "@" not in sanitized_email:
+                logger.warning("Invalid email format", email=email)
+                return None
             
             # Search in Leads first
             query = f"SELECT Id, FirstName, LastName, Company, Email, Status FROM Lead WHERE Email = '{sanitized_email}' LIMIT 1"
