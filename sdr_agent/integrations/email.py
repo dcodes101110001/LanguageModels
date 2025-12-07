@@ -1,10 +1,19 @@
 """Email Integration"""
 from typing import Optional, List
+import re
 from ..config import config
 from ..core.models import OutreachMessage, CRMActivity
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+
+def is_valid_email(email: str) -> bool:
+    """Validate email format"""
+    if not email:
+        return False
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return bool(re.match(email_pattern, email))
 
 
 class EmailIntegration:
@@ -60,6 +69,11 @@ class EmailIntegration:
         
         if not message.contact.email:
             logger.error("Cannot send email: contact has no email address")
+            return False
+        
+        # Validate email format
+        if not is_valid_email(message.contact.email):
+            logger.error("Cannot send email: invalid email format", email=message.contact.email)
             return False
         
         try:

@@ -1,7 +1,22 @@
 """Data models for SDR Agent"""
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+import re
+
+
+def validate_email_format(email: Optional[str]) -> Optional[str]:
+    """Validate email format using regex"""
+    if not email:
+        return email
+    
+    # Simple but effective email validation regex
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    
+    if not re.match(email_pattern, email):
+        raise ValueError(f"Invalid email format: {email}")
+    
+    return email
 
 
 class IdealCustomerProfile(BaseModel):
@@ -36,6 +51,12 @@ class Contact(BaseModel):
     company: str
     linkedin_url: Optional[str] = None
     phone: Optional[str] = None
+    
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v: Optional[str]) -> Optional[str]:
+        """Validate email format"""
+        return validate_email_format(v)
 
 
 class OutreachMessage(BaseModel):
@@ -55,3 +76,9 @@ class CRMActivity(BaseModel):
     description: str
     timestamp: datetime = Field(default_factory=datetime.now)
     status: str = "completed"
+    
+    @field_validator('contact_email')
+    @classmethod
+    def validate_contact_email(cls, v: str) -> str:
+        """Validate contact email format"""
+        return validate_email_format(v) or ""

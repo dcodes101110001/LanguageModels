@@ -178,6 +178,14 @@ class SalesforceIntegration:
         
         return value
     
+    def _is_valid_email(self, email: str) -> bool:
+        """Validate email format using regex"""
+        if not email:
+            return False
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return bool(re.match(email_pattern, email))
+    
     def search_contact(self, email: str) -> Optional[Dict[str, Any]]:
         """
         Search for existing contact/lead by email
@@ -193,13 +201,13 @@ class SalesforceIntegration:
             return None
         
         try:
-            # Sanitize email input to prevent SOQL injection
-            sanitized_email = self._sanitize_soql_string(email)
-            
-            # Validate email format as additional safety measure
-            if not sanitized_email or "@" not in sanitized_email:
+            # Validate email format first
+            if not self._is_valid_email(email):
                 logger.warning("Invalid email format", email=email)
                 return None
+            
+            # Sanitize email input to prevent SOQL injection
+            sanitized_email = self._sanitize_soql_string(email)
             
             # Search in Leads first
             query = f"SELECT Id, FirstName, LastName, Company, Email, Status FROM Lead WHERE Email = '{sanitized_email}' LIMIT 1"
